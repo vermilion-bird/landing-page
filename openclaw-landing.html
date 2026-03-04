@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw - 你的 AI 智能助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.2) 0%, transparent 40%);
+        }
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            max-width: 900px;
+            padding: 2rem;
+        }
+        .logo {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tagline {
+            font-size: 1.5rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+        .hero-description {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(99, 102, 241, 0.5);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        .section-subtitle {
+            text-align: center;
+            color: var(--gray);
+            font-size: 1.125rem;
+            margin-bottom: 4rem;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+        }
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card:nth-child(1) .feature-icon { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+        .feature-card:nth-child(2) .feature-icon { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+        .feature-card:nth-child(3) .feature-icon { background: linear-gradient(135deg, #fce7f3, #f9a8d4); }
+        .feature-card:nth-child(4) .feature-icon { background: linear-gradient(135deg, #d1fae5, #6ee7b7); }
+        .feature-card:nth-child(5) .feature-icon { background: linear-gradient(135deg, #ede9fe, #c4b5fd); }
+        .feature-card:nth-child(6) .feature-icon { background: linear-gradient(135deg, #cffafe, #67e8f9); }
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        .feature-description {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+        .stats {
+            padding: 6rem 2rem;
+            background: var(--dark);
+            color: white;
+        }
+        .stats-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        footer {
+            background: var(--dark);
+            color: #94a3b8;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .logo { font-size: 2.5rem; }
+            .tagline { font-size: 1.125rem; }
+            .hero-description { font-size: 1rem; }
+            .section-title { font-size: 1.875rem; }
+            .stat-number { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="logo">OpenClaw</h1>
+            <p class="tagline">你的个人 AI 智能助手</p>
+            <p class="hero-description">
+                OpenClaw 是一个强大的 AI 代理平台，连接你的数字生活。<br>
+                从股票分析到广告管理，从代码开发到内容创作，<br>
+                让 AI 成为你的超级助手。
+            </p>
+            <div class="cta-buttons">
+                <a href="#features" class="btn btn-primary">探索功能</a>
+                <a href="https://github.com/openclaw/openclaw" class="btn btn-secondary" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <h2 class="section-title">强大功能，无限可能</h2>
+        <p class="section-subtitle">通过 Skills 扩展能力，打造专属 AI 助手</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">股票分析</h3>
+                <p class="feature-description">A股、港股实时分析，技术指标计算，财务数据洞察，助你做出明智投资决策。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💻</div>
+                <h3 class="feature-title">代码开发</h3>
+                <p class="feature-description">AI 辅助编程，支持多种语言和框架，从原型到生产环境一站式开发。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">广告管理</h3>
+                <p class="feature-description">Meta Ads 智能管理，ROAS 分析，预算优化，让每一分广告费都物有所值。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3 class="feature-title">自动化工作流</h3>
+                <p class="feature-description">定时任务、安全检查、数据备份，一切自动化运行，无需人工干预。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">✉️</div>
+                <h3 class="feature-title">营销自动化</h3>
+                <p class="feature-description">冷邮件生成、内容创作、SEO 优化，AI 驱动的营销策略执行。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <h3 class="feature-title">技能生态</h3>
+                <p class="feature-description">13,000+ 社区技能，一键安装扩展，从 Notion 到 Spotify，连接你常用的所有工具。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">13,729+</div>
+                <div class="stat-label">社区技能</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">150万+</div>
+                <div class="stat-label">累计下载</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">系统工具</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">全天候服务</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://docs.openclaw.ai" target="_blank">文档</a>
+            <a href="https://github.com/openclaw/openclaw" target="_blank">GitHub</a>
+            <a href="https://clawhub.com" target="_blank">ClawHub</a>
+            <a href="https://discord.com/invite/clawd" target="_blank">Discord</a>
+        </div>
+        <p>&copy; 2026 OpenClaw. 让 AI 成为你的生活助手。</p>
+    </footer>
+</body>
+</html>

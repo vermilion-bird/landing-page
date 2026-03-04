@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝瀚互动 - 出海营销一站式服务商</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0066FF;
+            --primary-dark: #0052CC;
+            --secondary: #00D4FF;
+            --dark: #172B4D;
+            --light: #F4F5F7;
+            --gray: #5E6C84;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+        header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        nav { display: flex; gap: 2rem; }
+        nav a { color: var(--gray); text-decoration: none; font-weight: 500; }
+        nav a:hover { color: var(--primary); }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #001A33, #003366);
+            color: white;
+            margin-top: 60px;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 10% 90%, rgba(0,102,255,0.3), transparent 40%),
+                        radial-gradient(circle at 90% 10%, rgba(0,212,255,0.2), transparent 40%);
+        }
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; }
+        .hero h1 span { background: linear-gradient(135deg, var(--secondary), white); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.25rem; color: rgba(255,255,255,0.85); max-width: 600px; margin-bottom: 2rem; }
+        .hero-tags { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+        .tag { background: rgba(255,255,255,0.15); padding: 0.5rem 1rem; border-radius: 20px; backdrop-filter: blur(10px); }
+        .cta-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(0,102,255,0.4);
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(0,102,255,0.5); }
+        .partners { background: white; padding: 3rem; text-align: center; }
+        .partners h3 { color: var(--gray); letter-spacing: 2px; margin-bottom: 1.5rem; }
+        .partner-logos { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+        .partner-logo { font-size: 1.5rem; font-weight: 700; color: var(--gray); opacity: 0.6; }
+        .services { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; margin-bottom: 1rem; }
+        .section-title h2 { font-size: 2.5rem; font-weight: 700; }
+        .section-title p { color: var(--gray); }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem; }
+        .service-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #E4E7EB; }
+        .service-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+        .service-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #E6F0FF, #CCE5FF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1rem; }
+        .service-card h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .service-card p { color: var(--gray); font-size: 0.95rem; }
+        .stats { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 4rem 2rem; color: white; }
+        .stats-grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; text-align: center; }
+        .stat-item .number { font-size: 3rem; font-weight: 800; }
+        .why-us { padding: 6rem 2rem; background: white; }
+        .why-us-inner { max-width: 1200px; margin: 0 auto; }
+        .why-us h2 { font-size: 2.5rem; margin-bottom: 1.5rem; }
+        .why-us-list { list-style: none; }
+        .why-us-list li { padding: 1rem 0; border-bottom: 1px solid #E4E7EB; display: flex; align-items: center; gap: 1rem; }
+        .check-icon { width: 24px; height: 24px; background: #E6FFF0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00C853; }
+        .cta-section { padding: 6rem 2rem; background: linear-gradient(135deg, #001A33, #003366); text-align: center; color: white; }
+        .cta-section h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .cta-section p { margin-bottom: 2rem; }
+        footer { background: #0D1421; color: rgba(255,255,255,0.6); padding: 3rem 2rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+        .footer-col h4 { color: white; margin-bottom: 1rem; }
+        .footer-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; padding: 0.3rem 0; }
+        .footer-col a:hover { color: white; }
+        .footer-bottom { max-width: 1200px; margin: 2rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <div class="logo"><div class="logo-icon">B</div>蓝瀚互动</div>
+            <nav>
+                <a href="#services">服务</a>
+                <a href="#why-us">优势</a>
+                <a href="#contact">联系</a>
+            </nav>
+        </div>
+    </header>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>中国品牌出海<br><span>一站式营销解决方案</span></h1>
+            <p>深耕海外品牌与效果营销领域超 10 年，为中国品牌提供海外社交媒体营销、广告投放、海外网红营销等全方位服务。</p>
+            <div class="hero-tags">
+                <span class="tag">Facebook 官方代理</span>
+                <span class="tag">Google 核心伙伴</span>
+                <span class="tag">TikTok 认证代理商</span>
+                <span class="tag">10年+出海经验</span>
+            </div>
+            <a href="#contact" class="cta-btn">立即咨询</a>
+        </div>
+    </section>
+    <section class="partners">
+        <h3>官方授权合作伙伴</h3>
+        <div class="partner-logos">
+            <span class="partner-logo">Facebook</span>
+            <span class="partner-logo">Google</span>
+            <span class="partner-logo">TikTok</span>
+            <span class="partner-logo">Twitter</span>
+            <span class="partner-logo">LinkedIn</span>
+            <span class="partner-logo">YouTube</span>
+        </div>
+    </section>
+    <section class="services" id="services">
+        <div class="section-title">
+            <h2>我们的服务</h2>
+            <p>全方位的出海营销解决方案</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card"><div class="service-icon">📱</div><h3>海外广告投放</h3><p>Facebook、Google、TikTok、Twitter、LinkedIn 多平台广告投放，精准定位目标受众。</p></div>
+            <div class="service-card"><div class="service-icon">🎯</div><h3>海外网红营销</h3><p>覆盖全球的 KOL/KOC 资源库，专业达人筛选与执行团队。</p></div>
+            <div class="service-card"><div class="service-icon">📊</div><h3>品牌咨询与策略</h3><p>专业的品牌出海咨询，制定本土化营销策略。</p></div>
+            <div class="service-card"><div class="service-icon">🎬</div><h3>创意内容制作</h3><p>专业创意团队，提供短视频、图文、直播等内容制作。</p></div>
+            <div class="service-card"><div class="service-icon">📢</div><h3>公关影响力塑造</h3><p>海外媒体关系建设，PR 稿件发布，品牌口碑管理。</p></div>
+            <div class="service-card"><div class="service-icon">🤖</div><h3>AI 创新营销</h3><p>AI 技术赋能营销效率，智能创意生成与数据分析。</p></div>
+        </div>
+    </section>
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item"><div class="number">10+</div><div>年出海经验</div></div>
+            <div class="stat-item"><div class="number">500+</div><div>服务品牌</div></div>
+            <div class="stat-item"><div class="number">50亿+</div><div>年投放金额</div></div>
+            <div class="stat-item"><div class="number">100+</div><div>全球网红资源</div></div>
+        </div>
+    </section>
+    <section class="why-us" id="why-us">
+        <div class="why-us-inner">
+            <h2>为什么选择蓝瀚互动？</h2>
+            <ul class="why-us-list">
+                <li><span class="check-icon">✓</span>官方授权资质，直签 Facebook、Google、TikTok 等核心代理</li>
+                <li><span class="check-icon">✓</span>10 年+深耕出海营销，丰富的国际品牌服务经验</li>
+                <li><span class="check-icon">✓</span>本土化洞察，深入理解海外市场文化和消费习惯</li>
+                <li><span class="check-icon">✓</span>一站式服务，从策略到执行全链路覆盖</li>
+                <li><span class="check-icon">✓</span>AI 技术赋能，提升营销效率与投放 ROI</li>
+            </ul>
+        </div>
+    </section>
+    <section class="cta-section" id="contact">
+        <h2>准备好拓展海外市场了吗？</h2>
+        <p>联系我们，获取免费的出海营销咨询和方案报价</p>
+        <a href="mailto:contact@bluevision.com" class="cta-btn">立即咨询</a>
+    </section>
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-col"><h4>蓝瀚互动</h4><p>中国品牌出海一站式<br>营销解决方案提供商</p></div>
+            <div class="footer-col"><h4>服务</h4><a href="#">海外广告投放</a><a href="#">网红营销</a><a href="#">品牌咨询</a></div>
+            <div class="footer-col"><h4>联系我们</h4><a href="mailto:contact@bluevision.com">contact@bluevision.com</a></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2026 蓝瀚互动 BlueVision. 版权所有</p></div>
+    </footer>
+</body>
+</html>
