@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor 技术深度分享</title>
+  <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/3.0.23/tailwind.min.js"></script>
+  <link href="https://fonts.loli.net/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Noto Sans SC', sans-serif; background: #0d1117; color: #e6edf3; overflow: hidden; }
+    .code { font-family: 'JetBrains Mono', monospace; }
+    .slides-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #0d1117; }
+    .slide { width: 100%; height: 100%; max-width: 500px; max-height: 888px; aspect-ratio: 9/16; position: absolute; display: flex; flex-direction: column; padding: 1.5rem; opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; background: #0d1117; border-left: 1px solid #21262d; }
+    .slide.active { opacity: 1; transform: translateX(0); }
+    .slide.prev { opacity: 0; transform: translateX(-100%); }
+    .slide::-webkit-scrollbar { width: 4px; }
+    .slide::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+    .keyword { color: #ff7b72; }
+    .string { color: #a5d6ff; }
+    .function { color: #d2a8ff; }
+    .comment { color: #8b949e; }
+    .number { color: #79c0ff; }
+    .progress-bar { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 100; }
+    .progress-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; }
+    .progress-dot.active { background: #58a6ff; transform: scale(1.3); }
+    .page-number { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: rgba(255,255,255,0.3); z-index: 100; font-family: 'JetBrains Mono', monospace; }
+    .code-block { background: #161b22; border-radius: 8px; padding: 0.75rem; overflow-x: auto; font-size: 0.6rem; line-height: 1.4; border: 1px solid #30363d; margin: 0.5rem 0; }
+    .section-title { color: #58a6ff; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .highlight { color: #f0883e; }
+    .badge { display: inline-block; background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.55rem; margin: 0.1rem; }
+    .badge-blue { border-color: #388bfd; color: #58a6ff; }
+    .badge-green { border-color: #3fb950; color: #3fb950; }
+    .badge-red { border-color: #f85149; color: #f85149; }
+    .badge-purple { border-color: #a371f7; color: #a371f7; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.6rem; margin: 0.5rem 0; }
+    th, td { border: 1px solid #30363d; padding: 0.4rem; text-align: left; }
+    th { background: #161b22; color: #8b949e; }
+    .arrow { color: #58a6ff; }
+    .light-line { height: 1px; background: linear-gradient(90deg, transparent, #30363d, transparent); margin: 0.5rem 0; }
+    .box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 0.75rem; margin: 0.5rem 0; }
+    .box-title { font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem; color: #e6edf3; }
+  </style>
+</head>
+<body>
+<div class="slides-container">
+
+<!-- 1. 封面 -->
+<div class="slide active">
+  <div class="flex-1 flex flex-col justify-center">
+    <div class="text-sm code comment">// 技术分享</div>
+    <h1 class="text-4xl font-black mt-4 mb-2" style="color: #58a6ff;">Cursor</h1>
+    <h2 class="text-2xl font-bold" style="color: #d2a8ff;">AI-Native Code Editor</h2>
+    <div class="mt-8 text-sm text-gray-500">深度技术解析</div>
+    <div class="mt-4 flex gap-2">
+      <span class="badge">架构</span>
+      <span class="badge">RAG</span>
+      <span class="badge">Prompt</span>
+    </div>
+  </div>
+  <div class="text-xs text-gray-600 text-center pb-4">2026 · 技术分享</div>
+</div>
+
+<!-- 2. 为什么需要 AI 编辑器 -->
+<div class="slide">
+  <div class="section-title">PART 1: 认识 Cursor</div>
+  <h2 class="text-2xl font-bold mt-2 mb-4">为什么需要<br><span class="highlight">AI 编辑器</span></h2>
+  <div class="box">
+    <div class="box-title">传统 IDE 的瓶颈</div>
+    <div class="text-xs text-gray-400 space-y-1">
+      <div>• 补全只是 Next-Token，无法理解业务逻辑</div>
+      <div>• Refactor 需要逐文件手动修改</div>
+      <div>• 代码审查依赖人工</div>
+      <div>• 新人上手成本高</div>
+    </div>
+  </div>
+  <div class="light-line"></div>
+  <div class="box">
+    <div class="box-title">AI 辅助的演进</div>
+    <div class="code text-xs">
+      <span class="comment">2019:</span> <span class="string">Copilot</span> → Next-Token<br>
+      <span class="comment">2023:</span> <span class="string">ChatGPT</span> → 对话式辅助<br>
+      <span class="comment">2024:</span> <span class="string">Cursor</span> → AI-Native IDE<br>
+      <span class="comment">2025:</span> <span class="string">Cursor 2.0</span> → Agent 模式
+    </div>
+  </div>
+</div>
+
+<!-- 3. Cursor 定位 -->
+<div class="slide">
+  <div class="section-title">PART 1: 认识 Cursor</div>
+  <h2 class="text-2xl font-bold mt-2 mb-4">Cursor 定位</h2>
+  <div class="text-xl font-bold mb-4"><span class="highlight">不是插件，是重构</span></div>
+  <table>
+    <tr><th>特性</th><th>Copilot</th><th>Cursor</th></tr>
+    <tr><td>架构</td><td>VS Code 插件</td><td class="highlight">VS Code Fork</td></tr>
+    <tr><td>上下文</td><td>当前文件</td><td class="highlight">整个代码库</td></tr>
+    <tr><td>Agent</td><td>无</td><td class="highlight">Composer</td></tr>
+    <tr><td>代码库理解</td><td>有限</td><td class="highlight">深度 RAG</td></tr>
+  </table>
+  <div class="box mt-4">
+    <div class="code text-xs">
+      <span class="keyword">const</span> cursor = <span class="keyword">new</span> AI_First_IDE({<br>
+&nbsp;&nbsp;base: <span class="string">"VS Code"</span>,<br>
+&nbsp;&nbsp;nativeAI: <span class="keyword">true</span>,<br>
+&nbsp;&nbsp;context: <span class="string">"full-codebase"</span><br>
+});
+    </div>
+  </div>
+</div>
+
+<!-- 4. 三层架构 -->
+<div class="slide">
+  <div class="section-title">PART 2: 技术架构</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">三层架构</h2>
+  <div class="box" style="border-left: 3px solid #58a6ff;">
+    <div class="text-xs font-bold" style="color: #58a6ff;">Layer 1: VS Code Fork</div>
+    <div class="text-xs text-gray-400">编辑体验 + 插件生态 + terminal</div>
+  </div>
+  <div class="box" style="border-left: 3px solid #d2a8ff;">
+    <div class="text-xs font-bold" style="color: #d2a8ff;">Layer 2: AI Orchestration</div>
+    <div class="text-xs text-gray-400">模型选择 + 对话管理 + Credit 控制</div>
+  </div>
+  <div class="box" style="border-left: 3px solid #3fb950;">
+    <div class="text-xs font-bold" style="color: #3fb950;">Layer 3: Context Engine</div>
+    <div class="text-xs text-gray-400">代码库索引 + RAG + 增量更新</div>
+  </div>
+  <div class="light-line"></div>
+  <div class="text-xs text-gray-500">
+    基于 VS Code 开源版深度定制<br>
+    保持 100% 插件兼容性
+  </div>
+</div>
+
+<!-- 5. Codebase RAG 原理 -->
+<div class="slide">
+  <div class="section-title">PART 2: 技术架构</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Codebase <span class="highlight">RAG</span> 原理</h2>
+  <div class="code text-xs space-y-2">
+    <div class="box">
+      <span class="number">1.</span> 语义编码 → embedding model<br>
+      <span class="comment">&nbsp;&nbsp;// text → vec (1536维)</span>
+    </div>
+    <div class="box">
+      <span class="number">2.</span> 向量检索 → KNN Search<br>
+      <span class="comment">&nbsp;&nbsp;// Top-K 相关代码块</span>
+    </div>
+    <div class="box">
+      <span class="number">3.</span> 重排序 → Cross-Encoder<br>
+      <span class="comment">&nbsp;&nbsp;// 精排提升精度</span>
+    </div>
+    <div class="box">
+      <span class="number">4.</span> Prompt 增强 → LLM 生成<br>
+      <span class="comment">&nbsp;&nbsp;// 构建完整上下文</span>
+    </div>
+  </div>
+  <div class="text-xs mt-2 text-gray-500">
+    索引粒度: 函数级 + 类级<br>
+    Embedding: text-embedding-3-small
+  </div>
+</div>
+
+<!-- 6. 增量索引机制 -->
+<div class="slide">
+  <div class="section-title">PART 2: 技术架构</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">增量索引机制</h2>
+  <div class="code text-xs">
+<div class="code-block">watcher.on(<span class="string">'change'</span>, (file) => {
+&nbsp;&nbsp;<span class="comment">// 1. 计算文件 hash</span>
+&nbsp;&nbsp;<span class="keyword">const</span> newHash = crypto.hash(file.content);
+&nbsp;&nbsp;
+&nbsp;&nbsp;<span class="comment">// 2. 比对旧 hash</span>
+&nbsp;&nbsp;<span class="keyword">if</span> (newHash !== file.oldHash) {
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 3. 更新 embedding</span>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> newEmbedding = embedder.encode(file.content);
+&nbsp;&nbsp;&nbsp;&nbsp;vectorDB.upsert(file.path, newEmbedding);
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 4. 更新元数据</span>
+&nbsp;&nbsp;&nbsp;&nbsp;file.oldHash = newHash;
+&nbsp;&nbsp;}
+});</div>
+  </div>
+  <div class="box mt-3">
+    <div class="box-title">优化策略</div>
+    <div class="text-xs text-gray-400">
+      <span class="badge badge-blue">Debounce</span> 500ms 防止频繁更新
+      <span class="badge badge-green">Batch</span> 合并多个变更
+      <span class="badge badge-purple">Skip</span> 忽略 node_modules
+    </div>
+  </div>
+</div>
+
+<!-- 7. 架构对比 -->
+<div class="slide">
+  <div class="section-title">PART 2: 技术架构</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">架构对比</h2>
+  <table>
+    <tr><th>维度</th><th>Copilot</th><th>Cursor</th><th>Claude Code</th></tr>
+    <tr><td>上下文</td><td>文件级</td><td class="highlight">代码库级</td><td>代码库级</td></tr>
+    <tr><td>索引方式</td><td>静态</td><td class="highlight">动态增量</td><td>静态</td></tr>
+    <tr><td>多文件编辑</td><td>无</td><td class="highlight">Composer</td><td>有限</td></tr>
+    <tr><td>模型选择</td><td>GPT</td><td class="highlight">多模型</td><td>Claude</td></tr>
+    <tr><td>定价</td><td>订阅</td><td class="highlight">Credit</td><td>订阅</td></tr>
+  </table>
+  <div class="box mt-3">
+    <div class="text-xs text-gray-400">
+      <span class="highlight">结论：</span>Cursor 是目前最完整的 AI-Native IDE 解决方案
+    </div>
+  </div>
+</div>
+
+<!-- 8. AI Chat 底层 -->
+<div class="slide">
+  <div class="section-title">PART 3: 核心功能</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">AI Chat <span class="highlight">底层机制</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment">// 对话流程</span>
+<span class="string">"如何实现用户认证？"</span>
+&nbsp;&nbsp;↓
+&nbsp;&nbsp;1. <span class="function">@Codebase</span> 搜索相关代码
+&nbsp;&nbsp;2. <span class="function">@Docs</span> 加载项目文档  
+&nbsp;&nbsp;3. <span class="function">@Web</span> 搜索外部资源
+&nbsp;&nbsp;↓
+&nbsp;&nbsp;构建 Prompt → LLM 调用
+&nbsp;&nbsp;↓
+&nbsp;&nbsp;返回: 代码 + 解释 + 引用</div>
+  </div>
+  <div class="box mt-2">
+    <div class="box-title">上下文窗口管理</div>
+    <div class="text-xs text-gray-400">
+      <span class="badge">默认 200K tokens</span>
+      <span class="badge badge-purple">Max Mode 1M</span>
+      <span class="badge badge-blue">自动压缩</span>
+    </div>
+  </div>
+</div>
+
+<!-- 9. Cursor Tab -->
+<div class="slide">
+  <div class="section-title">PART 3: 核心功能</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Cursor Tab <span class="highlight">vs 传统补全</span></h2>
+  <div class="space-y-2 text-xs">
+    <div class="box">
+      <div class="box-title text-gray-500">传统补全</div>
+      <div class="code">
+<span class="keyword">function</span> <span class="function">calculateTotal</span>(items) {<br>
+&nbsp;&nbsp;→ <span class="comment">// 预测下一个词</span><br>
+&nbsp;&nbsp;<span class="string">return items.reduce((acc, item) =></span>
+      </div>
+    </div>
+    <div class="box" style="border-color: #3fb950;">
+      <div class="box-title" style="color: #3fb950;">Cursor Tab (Next-Action)</div>
+      <div class="code">
+<span class="keyword">function</span> <span class="function">calculateTotal</span>(items) {<br>
+&nbsp;&nbsp;→ <span class="comment">// 检测业务逻辑</span><br>
+&nbsp;&nbsp;→ 1. 完整函数体<br>
+&nbsp;&nbsp;→ 2. 添加折扣逻辑<br>
+&nbsp;&nbsp;→ 3. 添加税费计算
+      </div>
+    </div>
+  </div>
+  <div class="text-xs mt-2 text-gray-500">
+    预测粒度: 词 → 动作<br>
+    上下文: 行 → 函数/文件
+  </div>
+</div>
+
+<!-- 10. Composer -->
+<div class="slide">
+  <div class="section-title">PART 3: 核心功能</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Composer <span class="highlight">多文件编辑</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment">// 用户输入</span>
+<span class="string">"重构用户认证模块，改用 JWT"</span></div>
+  </div>
+  <div class="box mt-2">
+    <div class="box-title">Agent 架构</div>
+    <div class="text-xs text-gray-400 space-y-1">
+      <div><span class="number">1.</span> <span class="highlight">Planner</span> → 解析需求，生成执行计划</div>
+      <div><span class="number">2.</span> <span class="highlight">Executor</span> → 逐文件执行修改</div>
+      <div><span class="number">3.</span> <span class="highlight">Review</span> → 代码审查，建议优化</div>
+    </div>
+  </div>
+  <div class="code text-xs mt-2">
+    <span class="badge badge-blue">⌘I</span> 生成代码
+    <span class="badge badge-blue">⌘⇧I</span> Composer
+    <span class="badge badge-green">/agent</span> Agent 模式
+  </div>
+</div>
+
+<!-- 11. Codebase 搜索 -->
+<div class="slide">
+  <div class="section-title">PART 3: 核心功能</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Codebase <span class="highlight">语义搜索</span></h2>
+  <div class="space-y-2 text-xs">
+    <div class="box">
+      <div class="box-title">搜索: "处理支付"</div>
+      <div class="text-gray-400">
+        <span class="highlight">语义搜索:</span><br>
+        → payment_processor.ts <span class="number">92%</span><br>
+        → order_service.dart <span class="number">87%</span><br>
+        → stripe_webhook.py <span class="number">78%</span>
+      </div>
+    </div>
+    <div class="box">
+      <div class="text-gray-400">
+        <span class="highlight">关键词搜索:</span><br>
+        → payment.ts (只匹配 "payment")<br>
+        → pay.js (只匹配 "pay")
+      </div>
+    </div>
+  </div>
+  <div class="text-xs mt-2 text-gray-500">
+    语义理解 > 关键词匹配
+  </div>
+</div>
+
+<!-- 12. .cursorrules 基础 -->
+<div class="slide">
+  <div class="section-title">PART 4: .cursorrules</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">基础配置</h2>
+  <div class="code text-xs">
+<div class="code-block"># <span class="highlight">.cursorrules</span>
+<span class="comment">---</span>
+<span class="string">description:</span> 项目 AI 行为规范
+
+<span class="comment"># 代码风格</span>
+- <span class="keyword">use</span> TypeScript strict 模式
+- <span class="keyword">use</span> 函数式组件
+- <span class="keyword">use</span> Tailwind CSS
+
+<span class="comment"># 命名规范</span>
+- 组件: PascalCase
+- Hooks: camelCase with use prefix
+- 常量: UPPER_SNAKE_CASE</div>
+  </div>
+</div>
+
+<!-- 13. 进阶 Glob 模式 -->
+<div class="slide">
+  <div class="section-title">PART 4: .cursorrules</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">进阶: <span class="highlight">Glob 模式</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># .cursor/rules/backend.mdc</span>
+- <span class="keyword">when:</span> $ matches backend/**
+- <span class="string">rules:</span>
+&nbsp;&nbsp;- <span class="keyword">use</span> Prisma ORM
+&nbsp;&nbsp;- <span class="keyword">follow</span> RESTful 规范
+&nbsp;&nbsp;- <span class="keyword">handle</span> errors with try-catch
+
+<span class="comment"># .cursor/rules/frontend.mdc</span>
+- <span class="keyword">when:</span> $ matches frontend/**
+- <span class="string">rules:</span>
+&nbsp;&nbsp;- <span class="keyword">use</span> React 18 + TypeScript
+&nbsp;&nbsp;- <span class="keyword">use</span> Zustand</div>
+  </div>
+  <div class="box mt-2">
+    <div class="text-xs text-gray-400">按目录自动切换规则</div>
+  </div>
+</div>
+
+<!-- 14. 团队协作 -->
+<div class="slide">
+  <div class="section-title">PART 4: .cursorrules</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">团队协作规则</h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># .cursorrules - 团队版</span>
+<span class="comment">---</span>
+<span class="string">description:</span> 公司前端代码规范 v2.0
+
+<span class="comment"># 提交规范</span>
+- commit message 遵循 conventional commits
+- 提交前运行 ESLint
+
+<span class="comment"># 代码审查</span>
+- PR 必须通过 CI
+- 至少 1 人 review
+
+<span class="comment"># 测试要求</span>
+- 核心业务逻辑必须有单元测试
+- 覆盖率 > 70%</div>
+  </div>
+</div>
+
+<!-- 15. 上下文管理 -->
+<div class="slide">
+  <div class="section-title">PART 5: Prompt 工程</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">上下文管理指令</h2>
+  <div class="code text-xs space-y-2">
+    <div class="box">
+      <span class="badge badge-blue">@Files</span>
+      <div class="text-gray-400 mt-1">@components/Button.tsx 使用 Button 组件实现登录按钮</div>
+    </div>
+    <div class="box">
+      <span class="badge badge-blue">@Codebase</span>
+      <div class="text-gray-400 mt-1">@Codebase 查找所有使用 JWT 的地方</div>
+    </div>
+    <div class="box">
+      <span class="badge badge-blue">@Docs</span>
+      <div class="text-gray-400 mt-1">@Docs 参考 React 官方文档实现 useEffect cleanup</div>
+    </div>
+    <div class="box">
+      <span class="badge badge-blue">@Web</span>
+      <div class="text-gray-400 mt-1">@Web 最新 Next.js 14 App Router 最佳实践</div>
+    </div>
+  </div>
+</div>
+
+<!-- 16. Chain-of-Thought -->
+<div class="slide">
+  <div class="section-title">PART 5: Prompt 工程</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Chain-of-Thought</h2>
+  <div class="space-y-2 text-xs">
+    <div class="box" style="border-color: #f85149;">
+      <div class="box-title text-gray-500">❌ 错误示例</div>
+      <div class="text-gray-400">"写一个排序算法"</div>
+    </div>
+    <div class="arrow text-lg text-center">↓</div>
+    <div class="box" style="border-color: #3fb950;">
+      <div class="box-title" style="color: #3fb950;">✅ 正确示例</div>
+      <div class="text-gray-400">"实现排序算法，按步骤思考：<br>
+      1. 分析数据规模 (<1000 用插入排序)<br>
+      2. 选择算法 (大规模用快速排序)<br>
+      3. 考虑边界 (空数组、已排序)<br>
+      4. 编写代码并解释"</div>
+    </div>
+  </div>
+</div>
+
+<!-- 17. Few-Shot -->
+<div class="slide">
+  <div class="section-title">PART 5: Prompt 工程</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Few-Shot <span class="highlight">示例</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># 示例格式</span>
+<span class="string">示例 1:</span>
+输入: <span class="string">"用户登录接口"</span>
+输出:
+<span class="keyword">router.post</span>(<span class="string">'/login'</span>, <span class="keyword">async</span> (req, res) => {
+&nbsp;&nbsp;<span class="keyword">const</span> { email, password } = req.body;
+&nbsp;&nbsp;<span class="keyword">const</span> user = <span class="keyword">await</span> User.findOne({ email });
+&nbsp;&nbsp;<span class="keyword">if</span> (!user) <span class="keyword">return</span> res.status(401)...;
+});</div>
+  </div>
+  <div class="text-xs text-gray-500 mt-2">
+    给 AI 具体示例 → 输出更符合预期
+  </div>
+</div>
+
+<!-- 18. 模型对比 -->
+<div class="slide">
+  <div class="section-title">PART 6: 模型选择</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">模型对比</h2>
+  <table>
+    <tr><th>模型</th><th>上下文</th><th>优势场景</th><th>成本</th></tr>
+    <tr><td>Claude Sonnet</td><td>200K</td><td>日常开发</td><td class="highlight">中</td></tr>
+    <tr><td>Claude Opus</td><td>1M</td><td>复杂重构</td><td>高</td></tr>
+    <tr><td>GPT-5 Codex</td><td>128K</td><td>快速补全</td><td class="highlight">低</td></tr>
+    <tr><td>Gemini 2.5 Pro</td><td>1M</td><td>前端/React</td><td>中</td></tr>
+    <tr><td>DeepSeek V3</td><td>64K</td><td>预算敏感</td><td class="highlight">最低</td></tr>
+  </table>
+</div>
+
+<!-- 19. 中国模型 -->
+<div class="slide">
+  <div class="section-title">PART 6: 模型选择</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">🇨🇳 中国模型实测</h2>
+  <div class="space-y-2 text-xs">
+    <div class="box" style="border-color: #f0883e;">
+      <div class="box-title" style="color: #f0883e;">DeepSeek V3</div>
+      <div class="text-gray-400">
+        优势: 性价比高，代码质量接近 Claude<br>
+        劣势: 上下文较短<br>
+        适合: 日常简单开发
+      </div>
+    </div>
+    <div class="box" style="border-color: #a371f7;">
+      <div class="box-title" style="color: #a371f7;">GLM-4</div>
+      <div class="text-gray-400">
+        优势: 中文理解好，长上下文<br>
+        劣势: 代码质量一般<br>
+        适合: 中文文档处理
+      </div>
+    </div>
+    <div class="box" style="border-color: #58a6ff;">
+      <div class="box-title" style="color: #58a6ff;">通义千问</div>
+      <div class="text-gray-400">
+        优势: 免费额度大<br>
+        劣势: 代码能力弱<br>
+        适合: 非代码任务
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 20. 成本优化 -->
+<div class="slide">
+  <div class="section-title">PART 6: 模型选择</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">成本优化策略</h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># 模型选择建议</span>
+<span class="highlight">日常开发</span> → Claude Sonnet <span class="comment">(默认)</span>
+<span class="highlight">代码审查</span> → GPT-5 Codex <span class="comment">(快速)</span>
+<span class="highlight">大型重构</span> → Claude Opus <span class="comment">(Max Mode)</span>
+<span class="highlight">预算敏感</span> → DeepSeek V3
+<span class="highlight">前端项目</span> → Gemini 2.5 Pro</div>
+  </div>
+  <div class="box mt-3">
+    <div class="box-title">核心原则</div>
+    <div class="text-xs text-gray-400">
+      不是越贵越好，选择最适合场景的模型
+    </div>
+  </div>
+</div>
+
+<!-- 21. Git 工作流 -->
+<div class="slide">
+  <div class="section-title">PART 7: 工作流集成</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">Git <span class="highlight">工作流</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># AI Commit Message</span>
+<span class="keyword">npm install</span> -D commitizen
+<span class="keyword">git add</span> .
+<span class="keyword">git cz</span> → AI 自动生成
+
+<span class="comment"># 输出示例</span>
+feat(auth): add JWT token refresh mechanism
+- Implement token refresh endpoint
+- Add refresh token to cookie</div>
+  </div>
+  <div class="box mt-2">
+    <div class="box-title">AI Code Review</div>
+    <div class="text-xs text-gray-400">安装 Cursor 插件后，PR 自动触发 AI 审查</div>
+  </div>
+</div>
+
+<!-- 22. CI/CD 集成 -->
+<div class="slide">
+  <div class="section-title">PART 7: 工作流集成</div>
+  <h2 class="text-xl font-bold mt-2 mb-3">CI/CD <span class="highlight">集成</span></h2>
+  <div class="code text-xs">
+<div class="code-block"><span class="comment"># GitHub Actions 示例</span>
+<span class="string">name:</span> Cursor Bugbot
+<span class="keyword">on:</span> [pull_request]
+
+jobs:
+&nbsp;&nbsp;bug-detect:
+&nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest
+&nbsp;&nbsp;&nbsp;&nbsp;steps:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="keyword">uses:</span> cursor-ai/bugbot-action@main
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with:</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;github-token: $<span class="keyword">${{</span> secrets.GITHUB_TOKEN <span class="keyword">}}</span></div>
+  </div>
+  <div class="text-xs mt-2 text-gray-500">
+    自动检测 PR 中的潜在 bug
+  </div>
+</div>
+
+<!-- 23-31. 总结部分 -->
+<div class="slide">
+  <div class="section-title">PART 8: 总结</div>
+  <h2 class="text-xl font-bold mt-2 mb-4">最佳实践清单</h2>
+  <div class="text-xs space-y-1">
+    <div><span class="number">1.</span> 始终使用 @Codebase</div>
+    <div><span class="number">2.</span> 合理使用 .cursorrules</div>
+    <div><span class="number">3.</span> Prompt 要具体</div>
+    <div><span class="number">4.</span> 利用 Composer</div>
+    <div><span class="number">5.</span> 选择合适的模型</div>
+    <div><span class="number">6.</span> 定期检查索引</div>
+    <div><span class="number">7.</span> 使用 Agent 模式</div>
+    <div><span class="number">8.</span> 结合传统调试</div>
+    <div><span class="number">9.</span> 保持批判思维</div>
+    <div><span class="number">10.</span> 持续学习</div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="section-title">PART 8: 总结</div>
+  <h2 class="text-2xl font-bold mt-4 mb-6">资源链接</h2>
+  <div class="text-sm space-y-2">
+    <div>📖 <span class="highlight">官网:</span> cursor.com</div>
+    <div>📖 <span class="highlight">文档:</span> docs.cursor.com</div>
+    <div>💬 <span class="highlight">Discord:</span> cursor.sh/discord</div>
+    <div>📁 <span class="highlight">.cursorrules:</span> github.com/PatrickJS/awesome-cursorrules</div>
+    <div>💬 <span class="highlight">社区:</span> forum.cursor.com</div>
+  </div>
+  <div class="mt-8 text-center">
+    <div class="text-xl font-bold" style="color: #d2a8ff;">感谢观看！</div>
+    <div class="text-sm text-gray-500 mt-2">Q&A</div>
+  </div>
+</div>
+
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="page-number" id="pageNumber">1 / 26</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progressBar = document.getElementById('progressBar');
+const pageNumber = document.getElementById('pageNumber');
+let currentSlide = 0;
+
+slides.forEach((_, index) => {
+  const dot = document.createElement('div');
+  dot.className = `progress-dot ${index === 0 ? 'active' : ''}`;
+  dot.addEventListener('click', () => goToSlide(index));
+  progressBar.appendChild(dot);
+});
+
+function updateSlides() {
+  slides.forEach((slide, index) => {
+    slide.classList.remove('active', 'prev');
+    if (index === currentSlide) slide.classList.add('active');
+    else if (index < currentSlide) slide.classList.add('prev');
+  });
+  document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+    dot.classList.toggle('active', index === currentSlide);
+  });
+  pageNumber.textContent = `${currentSlide + 1} / ${slides.length}`;
+}
+
+function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; updateSlides(); } }
+function prevSlide() { if (currentSlide > 0) { currentSlide--; updateSlides(); } }
+function goToSlide(index) { currentSlide = index; updateSlides(); }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+  else if (e.key === 'ArrowLeft') prevSlide();
+});
+
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) diff > 0 ? nextSlide() : prevSlide();
+});
+</script>
+</body>
+</html>
